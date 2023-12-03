@@ -7,35 +7,35 @@ library(ggplot2)
 
 #Post 1600 Sample #feng, minor edits by marcin
 books_after_1600<-gutenberg_authors%>%
-  filter(birthdate >= 1500)
+  filter(birthdate >= 1500) #Filter by authors born after 1500 to get books published after 1600
 
-set.seed(444) 
+set.seed(444) #set seed for reproducibility
 
-index <- sample(books_after_1600$gutenberg_author_id, 70)  
+index <- sample(books_after_1600$gutenberg_author_id, 70) #get random sample of authors' id
 
-books_after_1600_1 <- filter(books_after_1600, gutenberg_author_id %in% index) 
+books_after_1600_1 <- filter(books_after_1600, gutenberg_author_id %in% index) #get corresponding books' title
 
-Sample2 <- gutenberg_works(author %in% books_after_1600_1$author)[1:50,]  
+Sample2 <- gutenberg_works(author %in% books_after_1600_1$author)[1:50,]  #the first 50 books as sample
 
-books_post_1600 <- gutenberg_download(Sample2$gutenberg_id, meta_fields = "title")
+books_post_1600 <- gutenberg_download(Sample2$gutenberg_id, meta_fields = "title") #download texts
 
 tidy_books_post_1600 <- books_post_1600 %>%
   group_by(title) %>%
   unnest_tokens(word, text) %>%
-  anti_join(stop_words) 
+  anti_join(stop_words) #grouped by titles of book, tokenized by words, and eliminate stop words
 
 bing_positive <- get_sentiments("bing") %>% 
-  filter(sentiment == "positive")
+  filter(sentiment == "positive") #get positive words
 
 post_1600_positive<-tidy_books_post_1600 %>%
   inner_join(bing_positive) %>%
-  summarize(positive_words = length(word)) 
+  summarize(positive_words = length(word)) #use inner join to find out number of positive words in each books
 
 post_1600_negative<-tidy_books_post_1600 %>%
   anti_join(bing_positive) %>%
-  summarize(negative_words = length(word)) 
+  summarize(negative_words = length(word)) #use outer join to find out number of negative words in each books
 
-post_1600_count = merge(post_1600_positive, post_1600_negative, by='title')
+post_1600_count = merge(post_1600_positive, post_1600_negative, by='title') #merge together to get a table
 
 #Antiquity Sample #marcin
 authors_from_antiquity <- c( 
@@ -116,9 +116,9 @@ counts_antiquity <- merge(antiquity_positive, antiquity_negative, by='title') %>
 
 score_function <- function(data) { #creates new column that contains the positive to negative score for each book. 
   data %>%
-  group_by(title) %>%
+    group_by(title) %>%
     mutate(sentiment_score = (100 * (positive_words/negative_words))) %>%
-  ungroup()
+    ungroup()
 }
 
 post_1600_count <- score_function(post_1600_count)
@@ -138,3 +138,43 @@ ggplot(post_1600_count, aes(x = sentiment_score)) +
   labs(title = "Distribution of Sentiment Scores for Books Written after 1600",
        x = "Sentiment Score",
        y = "Frequency")
+
+#some exploratory data analysis [EDA] #feng
+counts_antiquity <- counts_antiquity[,-4]
+summary(post_1600_count)
+summary(counts_antiquity)
+
+
+# violin plot #feng
+counts_antiquity$category <- 'Antiquity'
+post_1600_count$category <- 'Post-1600'# Add a new column to each dataset to indicate the category
+combined_data <- rbind(counts_antiquity, post_1600_count) # Combine the two datasets
+
+ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
+  geom_violin(trim = FALSE) +
+  labs(title = "Comparison of Sentiment Scores",
+       x = "Category",
+       y = "Sentiment Score") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Pastel1") #draw a violin plot to provide a better understanding of the density distribution of the sentiment scores
+
+# scatter plot #feng
+ggplot(combined_data[-31,], aes(x = positive_words, y = negative_words, color = category)) + #exclude outlier
+  geom_point(alpha = 0.7) + #transparency
+  geom_smooth(method = "lm", se = FALSE) + #fit line
+  scale_color_manual(values = c("blue", "red")) + #different colors for two samples
+  labs(title = "Scatter Plot of Word Counts with Sentiment Scores across different books in two sample",
+       x = "Positive Word Count",
+       y = "Negative Word Count",
+       color = "Category") +
+  theme_minimal()
+
+# Comparative Cumulative Distribution Plot #feng
+ggplot(combined_data, aes(x = sentiment_score, color = category)) +
+  stat_ecdf(geom = "step") +
+  labs(title = "Comparative CDF of Sentiment Scores",
+       x = "Sentiment Score",
+       y = "Cumulative Probability") +
+  theme_minimal() +
+  scale_colour_manual(values = c("Post 1600" = "blue", "Antiquity" = "red"))
+#in each sample, about 80% of books have sentiment scores lower than 10
