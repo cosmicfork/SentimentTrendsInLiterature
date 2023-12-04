@@ -151,7 +151,7 @@ post_1600_count$category <- 'Post-1600'# Add a new column to each dataset to ind
 combined_data <- rbind(counts_antiquity, post_1600_count) # Combine the two datasets
 
 ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
-  geom_violin(trim = FALSE) +
+  geom_violin(trim = TRUE) +
   labs(title = "Comparison of Sentiment Scores",
        x = "Category",
        y = "Sentiment Score") +
