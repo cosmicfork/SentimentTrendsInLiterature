@@ -159,7 +159,7 @@ ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
   scale_fill_brewer(palette = "Pastel1") #draw a violin plot to provide a better understanding of the density distribution of the sentiment scores
 
 # scatter plot #feng
-ggplot(combined_data[-31,], aes(x = positive_words, y = negative_words, color = category)) + #exclude outlier
+ggplot(combined_data[-35,], aes(x = positive_words, y = negative_words, color = category)) + #exclude outlier
   geom_point(alpha = 0.7) + #transparency
   geom_smooth(method = "lm", se = FALSE) + #fit line
   scale_color_manual(values = c("blue", "red")) + #different colors for two samples
