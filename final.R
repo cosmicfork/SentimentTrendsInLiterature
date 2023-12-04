@@ -175,6 +175,5 @@ ggplot(combined_data, aes(x = sentiment_score, color = category)) +
   labs(title = "Comparative CDF of Sentiment Scores",
        x = "Sentiment Score",
        y = "Cumulative Probability") +
-  theme_minimal() +
-  scale_colour_manual(values = c("Post 1600" = "blue", "Antiquity" = "red"))
+  theme_minimal() 
 #in each sample, about 80% of books have sentiment scores lower than 10
