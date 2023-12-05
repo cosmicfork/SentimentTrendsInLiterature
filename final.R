@@ -8,7 +8,6 @@ library(ggplot2)
 #Post 1600 Sample #feng, edits by arman and marcin
 books_after_1600<-gutenberg_authors%>%
   filter(birthdate >= 1500) #Filter by authors born after 1500 to get books published after 1600
-
 set.seed(444) #set seed for reproducibility
 
 index <- sample(books_after_1600$gutenberg_author_id, 70) #get random sample of authors' id
@@ -20,7 +19,7 @@ Sample2 <- gutenberg_works(author %in% books_after_1600_1$author)[1:50,]  #the f
 books_post_1600 <- gutenberg_download(Sample2$gutenberg_id, meta_fields = "title") #download texts
 
 tidy_books_post_1600 <- books_post_1600 %>%
-  group_by(title) %>%
+ group_by(title) %>%
   unnest_tokens(word, text) %>%
   anti_join(stop_words) #grouped by titles of book, tokenized by words, and eliminate stop words
 
@@ -74,7 +73,8 @@ index2 <- sample(gutenberg_authors_antiquity$title, 50) #samples 50 titles from 
 sample_titles <- gutenberg_works(title %in% index2) %>% #creates a subset tibble containing the 50 sample works
   arrange(author)
 
-duplicates <- c(19559, 11080, 24856, 41935, 3052, 14140, 8418, 2199, 26073, 16452, 29459, 1738) #seed 123. This vector includes manually excluded gutenberg_ids of duplicate works, secondary literature, or conflicting anthologies. This also includes works that have been archived. 1738, 66350
+#seed 123. This vector includes manually excluded gutenberg_ids of duplicate works, secondary literature, or conflicting anthologies. This also includes works that have been archived. 1738, 66350
+duplicates <- c(19559, 11080, 24856, 41935, 3052, 14140, 8418, 2199, 26073, 16452, 29459, 1738)
 
 sample_titles <- sample_titles[!sample_titles$gutenberg_id %in% duplicates, ] %>% #removes duplicates from sample_titles
   arrange(author)
@@ -123,6 +123,7 @@ score_function <- function(data) { #creates new column that contains the positiv
 
 post_1600_count <- score_function(post_1600_count)
 counts_antiquity <- score_function(counts_antiquity)
+#This code uses ggplot to create a histogram showing the distribution of sentiment scores for books written in antiquity.
 
 #plotting #marcin and arman
 ggplot(counts_antiquity, aes(x = sentiment_score)) +
@@ -148,6 +149,8 @@ summary(counts_antiquity)
 counts_antiquity$category <- 'Antiquity'
 post_1600_count$category <- 'Post-1600'# Add a new column to each dataset to indicate the category
 combined_data <- rbind(counts_antiquity, post_1600_count) # Combine the two datasets
+#The code prepares data for a violin plot comparing sentiment scores between books from antiquity and after 1600.
+#It adds a new column 'category' to each dataset to indicate its category.
 
 ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
   geom_violin(trim = TRUE) +
@@ -155,6 +158,8 @@ ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
        x = "Category",
        y = "Sentiment Score") +
   scale_fill_manual(values = c("#4B9CD3", "red")) #draw a violin plot to provide a better understanding of the density distribution of the sentiment scores
+#The x-axis represents the category (Antiquity or Post-1600), and the y-axis represents the sentiment score.
+#The plot provides a visual comparison of the density distribution of sentiment scores between the two categories.
 
 # scatter plot #feng
 ggplot(combined_data[-35,], aes(x = positive_words, y = negative_words, color = category)) + #exclude outlier
