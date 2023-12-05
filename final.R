@@ -5,7 +5,7 @@ library(tidytext)
 library(stringr)
 library(ggplot2)
 
-#Post 1600 Sample #feng, minor edits by marcin
+#Post 1600 Sample #feng, edits by arman and marcin
 books_after_1600<-gutenberg_authors%>%
   filter(birthdate >= 1500) #Filter by authors born after 1500 to get books published after 1600
 
@@ -37,7 +37,7 @@ post_1600_negative<-tidy_books_post_1600 %>%
 
 post_1600_count = merge(post_1600_positive, post_1600_negative, by='title') #merge together to get a table
 
-#Antiquity Sample #marcin
+#Antiquity Sample #marcin, edits by arman
 authors_from_antiquity <- c( 
   c(
     "Aeschylus",
@@ -124,7 +124,7 @@ score_function <- function(data) { #creates new column that contains the positiv
 post_1600_count <- score_function(post_1600_count)
 counts_antiquity <- score_function(counts_antiquity)
 
-#plotting #marcin
+#plotting #marcin and arman
 ggplot(counts_antiquity, aes(x = sentiment_score)) +
   coord_cartesian(xlim = c(0, 18), ylim = c(0, 8)) +
   geom_histogram(binwidth = 0.7, fill = "#4B9CD3", color = "black") +
@@ -166,7 +166,7 @@ ggplot(combined_data[-35,], aes(x = positive_words, y = negative_words, color = 
        y = "Negative Word Count",
        color = "Category")
 
-# Comparative Cumulative Distribution Plot #feng
+# Comparative Cumulative Distribution Plot #feng and arman
 ggplot(combined_data, aes(x = sentiment_score, color = category)) +
   stat_ecdf(geom = "step") +
   labs(title = "Comparative CDF of Sentiment Scores",
@@ -175,3 +175,71 @@ ggplot(combined_data, aes(x = sentiment_score, color = category)) +
   scale_color_manual(values = c("#4B9CD3", "red"))
 
 #in each sample, about 80% of books have sentiment scores lower than 10
+
+# Selected works from authors in antiquity #arman
+gutenberg_authors_antiquity <- gutenberg_works(author %in% authors_from_antiquity)
+
+index2 <- sample(gutenberg_authors_antiquity$title, 50) # Samples 50 titles
+
+sample_titles <- gutenberg_works(title %in% index2) %>%
+  arrange(author) # Creates a subset of works with the sampled titles
+
+# duplicates <- c(19559, 11080, 24856, 41935, 3052, 14140, 8418, 2199, 26073, 16452, 29459, 1738)
+# sample_titles <- sample_titles[!sample_titles$gutenberg_id %in% duplicates, ] %>%
+#   arrange(author) # Removes duplicates from the sample
+
+new_gaa <- subset(gutenberg_authors_antiquity[!gutenberg_authors_antiquity$gutenberg_id %in% sample_titles$gutenberg_id, ]) %>%
+  arrange(author) # Gets unique works not in the sample
+
+# print(new_gaa, n=100) # Prints the new_gaa subset (if needed)
+
+additional_books <- new_gaa %>%
+  filter(gutenberg_id %in% c(42543, 232, 1181, 348, 230, 28621, 2131, 2456, 66350)) #seed 123 # Selects additional unique books and merges additional_books with sample_titles
+sample_titles <- bind_rows(sample_titles, additional_books)
+
+books_antiquity <- gutenberg_download(sample_titles$gutenberg_id, meta_fields = "title") 
+# Downloads the works from antiquity
+
+# Further Data Analysis #arman 
+# Tidys the books_antiquity dataset for sentiment analysis
+tidy_books_antiquity <- books_antiquity %>%
+  group_by(title) %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) 
+
+antiquity_positive <- tidy_books_antiquity %>%
+  inner_join(bing_positive) %>%
+  summarize(positive_words = length(word)) # Counts positive words for each book
+
+antiquity_negative <- tidy_books_antiquity %>%
+  anti_join(bing_positive) %>%
+  summarize(negative_words = length(word)) # This counts the number of negative words for each book
+
+counts_antiquity <- merge(antiquity_positive, antiquity_negative, by='title') %>%
+  left_join(sample_titles %>% select(title, author), by = "title") %>%
+  arrange(author) # Merges positive and negative word counts with book titles
+
+# Score calculation #arman
+score_function <- function(data) {
+  data %>%
+    group_by(title) %>%
+    mutate(sentiment_score = (100 * (positive_words/negative_words))) %>%
+    ungroup()
+}
+
+# Apply score_function to datasets #arman
+post_1600_count <- score_function(post_1600_count)
+counts_antiquity <- score_function(counts_antiquity)
+
+#t test #arman 
+t_test_result <- t.test(
+  x = post_1600_count$sentiment_score,
+  y = counts_antiquity$sentiment_score,
+  alternative = "two.sided",
+  mu = 0,
+  paired = FALSE,
+  var.equal = FALSE
+)
+
+# Print the t-test result
+print(t_test_result)
