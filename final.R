@@ -144,7 +144,6 @@ counts_antiquity <- counts_antiquity[,-4]
 summary(post_1600_count)
 summary(counts_antiquity)
 
-
 # violin plot #feng
 counts_antiquity$category <- 'Antiquity'
 post_1600_count$category <- 'Post-1600'# Add a new column to each dataset to indicate the category
@@ -155,19 +154,17 @@ ggplot(combined_data, aes(x = category, y = sentiment_score, fill = category)) +
   labs(title = "Comparison of Sentiment Scores",
        x = "Category",
        y = "Sentiment Score") +
-  theme_minimal() +
-  scale_fill_brewer(palette = "Pastel1") #draw a violin plot to provide a better understanding of the density distribution of the sentiment scores
+  scale_fill_manual(values = c("#4B9CD3", "red")) #draw a violin plot to provide a better understanding of the density distribution of the sentiment scores
 
 # scatter plot #feng
 ggplot(combined_data[-35,], aes(x = positive_words, y = negative_words, color = category)) + #exclude outlier
   geom_point(alpha = 0.7) + #transparency
   geom_smooth(method = "lm", se = FALSE) + #fit line
-  scale_color_manual(values = c("blue", "red")) + #different colors for two samples
+  scale_color_manual(values = c("#4B9CD3", "red")) + #different colors for two samples
   labs(title = "Scatter Plot of Word Counts with Sentiment Scores across different books in two sample",
        x = "Positive Word Count",
        y = "Negative Word Count",
-       color = "Category") +
-  theme_minimal()
+       color = "Category")
 
 # Comparative Cumulative Distribution Plot #feng
 ggplot(combined_data, aes(x = sentiment_score, color = category)) +
@@ -175,5 +172,6 @@ ggplot(combined_data, aes(x = sentiment_score, color = category)) +
   labs(title = "Comparative CDF of Sentiment Scores",
        x = "Sentiment Score",
        y = "Cumulative Probability") +
-  theme_minimal() 
+  scale_color_manual(values = c("#4B9CD3", "red"))
+
 #in each sample, about 80% of books have sentiment scores lower than 10
