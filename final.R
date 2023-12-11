@@ -170,7 +170,7 @@ ggplot(combined_data[-35,], aes(x = positive_words, y = negative_words, color = 
        y = "Negative Word Count",
        color = "Category")
 
-# Comparative Cumulative Distribution Plot #feng and arman
+# Comparative Cumulative Distribution Plot #feng 
 ggplot(combined_data, aes(x = sentiment_score, color = category)) +
   stat_ecdf(geom = "step") +
   labs(title = "Comparative CDF of Sentiment Scores",
