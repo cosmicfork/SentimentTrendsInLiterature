@@ -192,3 +192,47 @@ t_test_result <- t.test(
 
 # Print the t-test result
 print(t_test_result)
+
+
+
+# top 20-30 most positive and most negative words in each time period #feng
+positive_in_antiquity <- books_antiquity %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  inner_join(bing_positive) %>%
+  count(word, sort = TRUE)%>%
+  head(20)
+
+negative_in_antiquity <-  books_antiquity %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  anti_join(bing_positive) %>%
+  count(word, sort = TRUE)%>%
+  head(20)
+
+positive_in_1600 <- books_post_1600 %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  inner_join(bing_positive) %>%
+  count(word, sort = TRUE)%>%
+  head(20)
+
+negative_in_1600 <-  books_post_1600 %>% 
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  anti_join(bing_positive) %>%
+  count(word, sort = TRUE)%>%
+  head(20)
+
+# check overlap function #feng
+overlap_function <- function(data1, data2) {
+  words_data1 <- data1[[1]]
+  words_data2 <- data2[[1]]
+  # Find the overlapping words
+  overlapping_words <- intersect(words_data1, words_data2)
+  return(overlapping_words)
+}
+
+overlap_function(positive_in_antiquity, positive_in_1600)
+overlap_function(negative_in_antiquity, negative_in_1600)
+
