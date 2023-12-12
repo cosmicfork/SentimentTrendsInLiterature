@@ -5,7 +5,7 @@ library(tidytext)
 library(stringr)
 library(ggplot2)
 
-#Post 1600 Sample #feng, minor edits by marcin and arman
+#Post 1600 Sample #feng, minor edits by marcin 
 books_after_1600<-gutenberg_authors%>%
   filter(birthdate >= 1500) #Filter by authors born after 1500 to get books published after 1600
 set.seed(444) #set seed for reproducibility
