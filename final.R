@@ -5,7 +5,7 @@ library(tidytext)
 library(stringr)
 library(ggplot2)
 
-#Post 1600 Sample #feng, minor edits by marcin
+#Post 1600 Sample #feng, minor edits by marcin and arman
 books_after_1600<-gutenberg_authors%>%
   filter(birthdate >= 1500) #Filter by authors born after 1500 to get books published after 1600
 set.seed(444) #set seed for reproducibility
@@ -207,6 +207,7 @@ ggplot(combined_data, aes(x = sentiment_score, color = category)) +
 
 #t test #arman 
 t_test_result <- t.test(
+  
   x = post_1600_count$sentiment_score,
   y = counts_antiquity$sentiment_score,
   alternative = "two.sided",
@@ -217,6 +218,8 @@ t_test_result <- t.test(
 
 # Print the t-test result
 print(t_test_result)
+#The initial results of the t-test produced a p-value of 0.06592. 
+#There is not enough evidence to reject the null hypothesis
 
 # top 20-30 most positive and most negative words in each time period #feng
 positive_in_antiquity <- books_antiquity %>% 
