@@ -111,39 +111,61 @@ antiquity_negative <- tidy_books_antiquity %>% #counts the negative words for ea
 counts_antiquity <- merge(antiquity_positive, antiquity_negative, by='title') %>% #Creates new tibble that includes the counts for positive and negative words, as well as the titles of the books
   left_join(sample_titles %>% select(title, author), by = "title") %>% 
   arrange(author)
-counts_antiquity
 
 #score calculation #marcin
 
-score_function <- function(data) { #creates new column that contains the positive to negative score for each book. 
+score_function <- function(data) { #creates new column that contains the positive/negative score for each book. It is multiplied by 100 for increased comprehensibility in the graphs (nicer number as opposed to decimals)
   data %>%
     group_by(title) %>%
     mutate(sentiment_score = (100 * (positive_words/negative_words))) %>%
     ungroup()
 }
 
-post_1600_count <- score_function(post_1600_count)
+post_1600_count <- score_function(post_1600_count) 
 counts_antiquity <- score_function(counts_antiquity)
 
-counts_antiquity
-
 #plotting of distributions #marcin
+
+#below is a distribution of the Sentiment Scores for books written in Antiquity.
 ggplot(counts_antiquity, aes(x = sentiment_score)) +
   coord_cartesian(xlim = c(0, 18), ylim = c(0, 8)) +
   geom_histogram(binwidth = 0.7, fill = "#4B9CD3", color = "black") +
   labs(title = "Distribution of Sentiment Scores for Books Written in Antiquity",
        x = "Sentiment Score",
-       y = "Frequency")
+       y = "Frequency") +
+  theme(
+    plot.title = element_text(size = 18),   
+    axis.title.x = element_text(size = 16),  
+    axis.title.y = element_text(size = 16), 
+    axis.text.x = element_text(size = 14), 
+    axis.text.y = element_text(size = 14))
 
+#below is a distribution of the Sentiment Scores for books written after 1600.
 ggplot(post_1600_count, aes(x = sentiment_score)) +
   coord_cartesian(xlim = c(0, 18), ylim = c(0, 8)) +
   geom_histogram(binwidth = 0.7, fill = "red", color = "black") +
   labs(title = "Distribution of Sentiment Scores for Books Written after 1600",
        x = "Sentiment Score",
-       y = "Frequency")
+       y = "Frequency") + 
+  theme(
+    plot.title = element_text(size = 18),   
+    axis.title.x = element_text(size = 16),  
+    axis.title.y = element_text(size = 16), 
+    axis.text.x = element_text(size = 14), 
+    axis.text.y = element_text(size = 14))
 
-#some exploratory data analysis [EDA] #feng
-counts_antiquity <- counts_antiquity[,-4]
+#some exploratory data analysis [EDA] 
+ 
+#marcin; the function below finds outliers by calculating the z_score of each sentiment score the tibble. If the z_score is greater than the threshold of 3, then it is returned by function. 
+outlier_finder <- function(score_column) { #marcin
+  z_scores <- scale(score_column)
+  outliers <- which(abs(z_scores) > 3)
+  return(outliers)
+}
+outliers_antiquity <- counts_antiquity$sentiment_score[outlier_finder(counts_antiquity$sentiment_score)] #outlier scores for the counts_antiquity set
+outliers_post_1600 <- post_1600_count$sentiment_score[outlier_finder(post_1600_count$sentiment_score)] #outlier scores for the post_1600 set
+
+counts_antiquity <- counts_antiquity[,-4] #feng
 summary(post_1600_count)
 summary(counts_antiquity)
 
@@ -196,8 +218,6 @@ t_test_result <- t.test(
 # Print the t-test result
 print(t_test_result)
 
-
-
 # top 20-30 most positive and most negative words in each time period #feng
 positive_in_antiquity <- books_antiquity %>% 
   unnest_tokens(word, text) %>%
@@ -238,4 +258,3 @@ overlap_function <- function(data1, data2) {
 
 overlap_function(positive_in_antiquity, positive_in_1600)
 overlap_function(negative_in_antiquity, negative_in_1600)
-
