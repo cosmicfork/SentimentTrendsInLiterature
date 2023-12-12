@@ -68,12 +68,12 @@ authors_from_antiquity <- c(
 set.seed(123) #seed for the sample: this is important, because the duplicates list later on depends on the seed used for sampling
 gutenberg_authors_antiquity <- gutenberg_works(author %in% authors_from_antiquity) #creates subset of all works written by authors in authors_from_antiquities vector
 
-index2 <- sample(gutenberg_authors_antiquity$title, 50) #samples 50 titles from the all of the works from antiquity
+index2 <- sample(gutenberg_authors_antiquity$title, 50) #samples 50 titles from the works written by the authors in the authors_from_antiquity vector
 
 sample_titles <- gutenberg_works(title %in% index2) %>% #creates a subset tibble containing the 50 sample works
   arrange(author)
 
-#seed 123. This vector includes manually excluded gutenberg_ids of duplicate works, secondary literature, or conflicting anthologies. This also includes works that have been archived. 1738, 66350
+#seed 123. This vector includes manually excluded gutenberg_ids of duplicate works, secondary literature, or conflicting anthologies. This also includes works that have been archived. 
 duplicates <- c(19559, 11080, 24856, 41935, 3052, 14140, 8418, 2199, 26073, 16452, 29459, 1738)
 
 sample_titles <- sample_titles[!sample_titles$gutenberg_id %in% duplicates, ] %>% #removes duplicates from sample_titles
@@ -111,6 +111,7 @@ antiquity_negative <- tidy_books_antiquity %>% #counts the negative words for ea
 counts_antiquity <- merge(antiquity_positive, antiquity_negative, by='title') %>% #Creates new tibble that includes the counts for positive and negative words, as well as the titles of the books
   left_join(sample_titles %>% select(title, author), by = "title") %>% 
   arrange(author)
+counts_antiquity
 
 #score calculation #marcin
 
@@ -123,6 +124,8 @@ score_function <- function(data) { #creates new column that contains the positiv
 
 post_1600_count <- score_function(post_1600_count)
 counts_antiquity <- score_function(counts_antiquity)
+
+counts_antiquity
 
 #plotting of distributions #marcin
 ggplot(counts_antiquity, aes(x = sentiment_score)) +
